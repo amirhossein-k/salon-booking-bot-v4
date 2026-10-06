@@ -3,6 +3,7 @@ import argparse
 import ast
 import hashlib
 import io
+import re
 from pathlib import Path
 import shutil
 import tempfile
@@ -18,6 +19,26 @@ def replace_once(text, old, new, filename):
     if text.count(old) != 1:
         raise ValueError(f"Unexpected source in {filename}; refusing an unsafe patch.")
     return text.replace(old, new, 1)
+
+
+def replace_one_of(text, variants, new, filename):
+    matches = [(old, text.count(old)) for old in variants if text.count(old)]
+    if len(matches) != 1 or matches[0][1] != 1:
+        found = ", ".join(str(count) for _, count in matches) or "0"
+        raise ValueError(f"Unexpected source in {filename}; weekly-hours marker matches: {found}.")
+    return text.replace(matches[0][0], new, 1)
+
+
+def replace_weekly_hours_notice(text, new, filename):
+    pattern = (
+        r'"تغییر برنامه(?:ٔ|‌ٔ)? ?هفتگی در config\.json و با راه‌اندازی مجدد '
+        r'انجام می(?:‌)?شود؛ "'
+    )
+    matches = list(re.finditer(pattern, text))
+    if len(matches) != 1:
+        raise ValueError(f"Unexpected source in {filename}; weekly-hours marker matches: {len(matches)}.")
+    start, end = matches[0].span()
+    return text[:start] + new + text[end:]
 
 
 def patch(root):
@@ -82,10 +103,10 @@ def patch(root):
         '            if uid not in self.db.config["admin_ids"] and len(allowed) == 1:\n'
         '                return self.callback(uid, f"staff|{allowed[0][\'id\']}")\n'
         '            rows = [[(s["name"], f"staff|{s[\'id\']}")] for s in allowed]\n', file.name)
-    text = replace_once(
+    text = replace_weekly_hours_notice(
         text,
-        '"تغییر برنامهٔ هفتگی در config.json و با راه‌اندازی مجدد انجام می‌شود؛ "',
-        '"در نسخه آنلاین، مدیر برنامه هفتگی را از بخش کارکنان داشبورد تغییر می‌دهد؛ "', file.name)
+        '"در نسخه آنلاین، مدیر برنامه هفتگی را از بخش کارکنان داشبورد تغییر می‌دهد؛ "',
+        file.name)
     file.write_text(text, encoding="utf-8")
 
     file = root / "app.py"

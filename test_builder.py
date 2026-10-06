@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from build_fixed_project import patch, replace_once
+from build_fixed_project import patch, replace_once, replace_one_of, replace_weekly_hours_notice
 
 
 class BuilderTests(unittest.TestCase):
@@ -13,6 +13,25 @@ class BuilderTests(unittest.TestCase):
             replace_once("wrong", "expected", "new", "source.py")
         with self.assertRaises(ValueError):
             replace_once("twice twice", "twice", "new", "source.py")
+
+    def test_weekly_hours_marker_accepts_spacing_variants(self):
+        result = replace_one_of(
+            '"تغییر برنامه هفتگی در config.json و با راه‌اندازی مجدد انجام می‌شود؛ "',
+            (
+                '"تغییر برنامهٔ هفتگی در config.json و با راه‌اندازی مجدد انجام می‌شود؛ "',
+                '"تغییر برنامه هفتگی در config.json و با راه‌اندازی مجدد انجام می‌شود؛ "',
+            ),
+            '"مدیریت از داشبورد؛ "',
+            "bot.py",
+        )
+        self.assertEqual(result, '"مدیریت از داشبورد؛ "')
+
+    def test_weekly_hours_marker_accepts_zero_width_joiners(self):
+        source = '"تغییر برنامه هفتگی در config.json و با راه‌اندازی مجدد انجام می\u200cشود؛ "'
+        self.assertEqual(
+            replace_weekly_hours_notice(source, '"مدیریت از داشبورد؛ "', "bot.py"),
+            '"مدیریت از داشبورد؛ "',
+        )
 
     def test_patched_fixture_compiles_and_has_access_checks(self):
         with tempfile.TemporaryDirectory() as temp:
