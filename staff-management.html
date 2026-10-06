@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مدیریت کارکنان سالن</title>
+<style>
+:root{font-family:Tahoma,Arial,sans-serif;color:#183c44;background:#eef6f7}
+*{box-sizing:border-box}body{margin:0}header{background:#14677a;color:white;padding:24px max(20px,calc((100vw - 1080px)/2))}
+header a{color:white}h1{font-size:26px;margin:10px 0}h2{font-size:20px;margin-top:0}
+main{max-width:1080px;margin:24px auto;padding:0 16px}.toolbar{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+.layout{display:grid;grid-template-columns:1fr 1fr;gap:20px}section{background:white;border-radius:16px;padding:22px;box-shadow:0 3px 14px #183c4410}
+label{display:block;font-size:14px;margin:16px 0 6px}input,select,button{font:inherit;font-size:16px;padding:11px;border-radius:8px}
+input:not([type=checkbox]),select{width:100%;border:1px solid #bfd3d7;background:white;color:#183c44}
+button{border:0;background:#14677a;color:white;cursor:pointer;margin:8px 0}button:disabled{opacity:.5;cursor:wait}
+.danger{background:#9b373d}.secondary{background:#e6eff1;color:#183c44}.hint{font-size:14px;color:#527078;line-height:1.8}
+.check{display:flex;gap:8px;align-items:center;margin:8px 0}.check input{width:20px;height:20px}
+.hours{display:grid;grid-template-columns:85px 1fr;gap:8px;align-items:center;margin:8px 0}.hours label{margin:0}.hours input{direction:ltr;text-align:left}
+#message{padding:14px;border-radius:10px;line-height:1.8;background:#d8eef2;margin-bottom:18px;white-space:pre-line}
+[hidden]{display:none!important}.appointment{border:1px solid #dae7e9;border-radius:10px;padding:14px;margin:12px 0;line-height:1.8}
+.appointment p{margin:6px 0}.actions{display:flex;flex-wrap:wrap;gap:8px}.actions button{font-size:14px}
+@media(max-width:740px){.layout{grid-template-columns:1fr}.toolbar{display:block}header{padding:20px}main{margin-top:16px}.hours{grid-template-columns:70px 1fr}}
+</style>
+<header><a href="/">بازگشت به داشبورد</a><h1>کارکنان و دسترسی ربات</h1><div>هر آرایشگر، فقط پنل خودش</div></header>
+<main>
+<div id="message" role="status" aria-live="polite">در حال دریافت اطلاعات…</div>
+<div class="toolbar"><label for="staff">آرایشگر</label><select id="staff" disabled></select></div>
+<div class="layout" id="content" hidden>
+<section>
+<h2>مشخصات و دسترسی</h2>
+<form id="settings">
+<label for="name">نام آرایشگر</label><input id="name" required maxlength="100">
+<label for="telegram">شناسه عددی تلگرام در گفتگوی خصوصی</label><input id="telegram" dir="ltr" inputmode="numeric" placeholder="مثلاً 123456789">
+<p class="hint">آرایشگر در ربات دستور /id را می‌فرستد. شناسه را اینجا ثبت کن؛ شناسه گروه یا نام کاربری قابل استفاده نیست. خالی گذاشتن شناسه، اتصال ربات را قطع می‌کند.</p>
+<label class="check"><input id="enabled" type="checkbox">دسترسی پنل ربات فعال باشد</label>
+<label>خدمات</label><div id="services"></div>
+<h2 style="margin-top:24px">برنامه هفتگی</h2>
+<p class="hint">به وقت تهران. هر بازه مثل 09:00-18:00؛ چند بازه با کاما جدا شود. خالی یعنی تعطیل. تغییر برنامه نوبت‌های قبلی را لغو نمی‌کند.</p>
+<div id="hours"></div>
+<button type="submit">ذخیره تنظیمات</button>
+</form>
+</section>
+<section>
+<h2>مدیریت نوبت‌ها و زمان‌ها</h2>
+<label for="day">تاریخ شمسی</label><input id="day" placeholder="1405/07/14" dir="ltr">
+<button id="load" type="button">نمایش برنامه روز</button>
+<div id="calendar"></div>
+<form id="block">
+<h2 style="margin-top:24px">مسدود کردن زمان</h2>
+<p class="hint">برای همان تاریخ بالا؛ بازه دارای نوبت قطعی قابل مسدود کردن نیست.</p>
+<label for="start">از ساعت</label><input id="start" type="time" required value="09:00">
+<label for="end">تا ساعت</label><input id="end" type="time" required value="18:00">
+<label for="reason">دلیل</label><input id="reason" required maxlength="200">
+<button type="submit">ثبت بازه مسدود</button>
+</form>
+</section>
+</div>
+</main>
+<script>
+'use strict';
+// Preserve the existing manager login. Never accept Telegram identity from a bot client.
+let model, csrf, busy = false;
+const $ = id => document.getElementById(id);
+const days = ['دوشنبه','سه‌شنبه','چهارشنبه','پنجشنبه','جمعه','شنبه','یکشنبه'];
+const labels = {confirmed:'رزرو قطعی',completed:'انجام شده',no_show:'عدم حضور',cancelled_staff:'لغو توسط سالن',cancelled_customer:'لغو توسط مشتری'};
+function message(text) { $('message').textContent = text; }
+function node(tag,text) { const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n; }
+function selected() { return model.staff.find(s=>s.id===$('staff').value); }
+async function api(path, method='GET', data) {
+ const response=await fetch(path,{method,credentials:'same-origin',headers: data?{'Content-Type':'application/json','X-CSRF-Token':csrf}:{},body:data?JSON.stringify(data):undefined});
+ const content=await response.json().catch(()=>({}));
+ if(!response.ok)throw Error(content.error||(response.status===401?'ورود مدیر لازم است.':'عملیات انجام نشد.'));
+ return content;
+}
+async function action(run) {
+ if(busy)return;busy=true;document.querySelectorAll('button,select').forEach(n=>n.disabled=true);
+ try{await run();}catch(e){message(e.message);}
+ finally{busy=false;document.querySelectorAll('button,select').forEach(n=>n.disabled=false);}
+}
+function fill() {
+ const s=selected();$('name').value=s.name;$('telegram').value=s.telegram_id??'';$('enabled').checked=s.panel_enabled!==false;
+ $('services').replaceChildren();
+ for(const service of model.services){const label=node('label',service.name);label.className='check';const input=node('input');input.type='checkbox';input.value=service.id;input.checked=s.services.includes(service.id);label.prepend(input);$('services').append(label);}
+ $('hours').replaceChildren();
+ days.forEach((day,i)=>{const wrap=node('div');wrap.className='hours';const label=node('label',day);label.htmlFor='h'+i;const input=node('input');input.id='h'+i;input.value=(s.weekly_hours[String(i)]||[]).map(pair=>pair.join('-')).join(', ');wrap.append(label,input);$('hours').append(wrap);});
+ $('calendar').replaceChildren();message('تنظیمات '+s.name+' بارگذاری شد. مدیر همچنان به همه کارکنان دسترسی دارد.');
+}
+async function refresh(keep) {
+ model=await api('/api/staff');csrf=model.csrf;$('staff').replaceChildren();
+ for(const s of model.staff){const option=node('option',s.name);option.value=s.id;$('staff').append(option);}
+ if(keep && model.staff.some(s=>s.id===keep))$('staff').value=keep;
+ if(!model.staff.length)throw Error('ابتدا کارکنان را در config.json تعریف کن.');
+ $('content').hidden=false;$('staff').disabled=false;fill();
+}
+async function calendar() {
+ const sid=$('staff').value;
+ const data=await api('/api/staff/'+encodeURIComponent(sid)+'/calendar?day='+encodeURIComponent($('day').value));
+ const target=$('calendar');target.replaceChildren();
+ if(!data.bookings.length)target.append(node('p','نوبتی برای این روز ثبت نشده.'));
+ for(const b of data.bookings){
+  const box=node('div');box.className='appointment';
+  box.append(node('strong','#'+b.id+' · '+b.customer_name),node('p',b.start_label),node('p','تلفن: '+b.phone),node('p',labels[b.status]||b.status));
+  if(b.reason)box.append(node('p','توضیح: '+b.reason));
+  if(b.status==='confirmed'){
+   const actions=node('div');actions.className='actions';
+   for(const state of ['completed','no_show','cancelled_staff','cancelled_customer']){
+    const button=node('button',labels[state]);button.type='button';if(state.startsWith('cancelled'))button.className='danger';
+    button.onclick=()=>{const reason=prompt('دلیل یا توضیح را بنویس:');if(!reason||!reason.trim())return;if(!confirm('وضعیت نوبت #'+b.id+' به «'+labels[state]+'» تغییر کند؟ اعلان برای مشتری و کارکنان ارسال می‌شود.'))return;
+     action(async()=>{await api('/api/staff/'+encodeURIComponent(sid)+'/calendar','POST',{action:'status',booking_id:b.id,status:state,reason});await calendar();message('وضعیت نوبت ثبت شد.');});};
+    actions.append(button);
+   }box.append(actions);
+  }target.append(box);
+ }
+ for(const b of data.blocks){
+  const box=node('div');box.className='appointment';box.append(node('strong','زمان مسدود'),node('p',b.start_label+' تا '+b.end_label),node('p',b.reason));
+  const button=node('button','باز کردن این بازه');button.type='button';button.className='secondary';
+  button.onclick=()=>{if(!confirm('این بازه دوباره قابل رزرو شود؟'))return;action(async()=>{await api('/api/staff/'+encodeURIComponent(sid)+'/calendar','POST',{action:'unblock',block_id:b.id});await calendar();message('بازه باز شد.');});};
+  box.append(button);target.append(box);
+ }message('برنامه روز بارگذاری شد.');
+}
+$('staff').onchange=fill;
+$('load').onclick=()=>action(calendar);
+$('settings').onsubmit=event=>{event.preventDefault();action(async()=>{
+ const raw=$('telegram').value.trim().replace(/[۰-۹]/g,c=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(c));
+ if(raw && !/^[1-9][0-9]*$/.test(raw))throw Error('شناسه تلگرام باید عدد صحیح مثبت باشد.');
+ const uid=raw?Number(raw):null;if(uid!==null && !Number.isSafeInteger(uid))throw Error('شناسه عددی معتبر نیست.');
+ const weekly_hours={};days.forEach((_,i)=>{const raw=$('h'+i).value.trim();weekly_hours[String(i)]=raw?raw.split(/[,،]/).map(part=>part.trim().split('-').map(t=>t.trim())):[];});
+ const sid=$('staff').value;
+ await api('/api/staff/'+encodeURIComponent(sid),'PUT',{name:$('name').value.trim(),telegram_id:uid,panel_enabled:$('enabled').checked,services:[...$('services').querySelectorAll('input:checked')].map(n=>n.value),weekly_hours});
+ await refresh(sid);message('ذخیره شد. اتصال جدید در درخواست بعدی ربات اعمال می‌شود؛ نیازی به استقرار مجدد نیست.');
+});};
+$('block').onsubmit=event=>{event.preventDefault();action(async()=>{
+ await api('/api/staff/'+encodeURIComponent($('staff').value)+'/calendar','POST',{action:'block',day:$('day').value,start:$('start').value,end:$('end').value,reason:$('reason').value});
+ await calendar();message('بازه مسدود شد.');$('reason').value='';
+});};
+try{const parts=new Intl.DateTimeFormat('en-US-u-ca-persian',{timeZone:'Asia/Tehran',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date());const part=type=>parts.find(p=>p.type===type).value;$('day').value=part('year')+'/'+part('month')+'/'+part('day');}catch{}
+action(()=>refresh());
+</script>
+</html>

@@ -1,0 +1,24 @@
+Independent checks run in the build environment
+==============================================
+
+python -m unittest -v test_staff_management test_builder test_routes
+36 tests: PASS
+
+Python ast.parse for all patch-package Python files: PASS
+node --check for the employee-management page script: PASS
+Persian-calendar input for 2026-10-06 in Asia/Tehran: 1405/07/14
+
+Test scope:
+  23 validation/settings unit tests with a fake repository.
+   2 source-shaped fixture/patch marker tests, including generated access checks.
+  11 route boundary tests using framework stubs.
+
+NOT tested:
+  Downloading or patching the actual GitHub ZIP in this environment.
+  Real MongoDB transactions, simultaneous requests, and outbox delivery.
+  Actual FastAPI HTTP requests, Vercel deployment, Telegram integration.
+  Visual rendering in a browser.
+
+The builder verifies the reviewed source snapshot and parses all Python files
+when executed by the user. Deploy to staging and run real integration tests
+before replacing a production deployment.
