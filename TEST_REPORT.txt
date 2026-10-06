@@ -1,0 +1,76 @@
+59 Python tests passed including authenticated /mobile HTTP endpoint.
+JavaScript syntax and Node simulated-DOM smoke tests passed for navigation, filters, load-more, dates, revenue aggregates, sample payment and empty/error states.
+No physical phone/browser screenshot, Docker build, live Telegram delivery or public deployment was performed.
+Standalone HTML has synthetic data; real mode is enabled by dashboard.py.
+
+test_all_dates_1900_2100_contiguous_and_valid (test_calendar_reminders.CalendarTests.test_all_dates_1900_2100_contiguous_and_valid) ... ok
+test_farsi_labels (test_calendar_reminders.CalendarTests.test_farsi_labels) ... ok
+test_reference_dates_and_leap_esfand (test_calendar_reminders.CalendarTests.test_reference_dates_and_leap_esfand) ... ok
+test_supported_range (test_calendar_reminders.CalendarTests.test_supported_range) ... ok
+test_calendar_in_user_menus_and_booking_text (test_calendar_reminders.ReminderTests.test_calendar_in_user_menus_and_booking_text) ... ok
+test_cancel_before_due_suppresses_reminders (test_calendar_reminders.ReminderTests.test_cancel_before_due_suppresses_reminders) ... ok
+test_cancel_queued_reminder_before_delivery (test_calendar_reminders.ReminderTests.test_cancel_queued_reminder_before_delivery) ... ok
+test_custom_offset (test_calendar_reminders.ReminderTests.test_custom_offset) ... ok
+test_disable_reminders_and_cancel_pending (test_calendar_reminders.ReminderTests.test_disable_reminders_and_cancel_pending) ... ok
+test_due_times_and_customer_only (test_calendar_reminders.ReminderTests.test_due_times_and_customer_only) ... ok
+test_flush_rechecks_staleness_without_scheduler (test_calendar_reminders.ReminderTests.test_flush_rechecks_staleness_without_scheduler) ... ok
+test_invalid_offsets_rejected (test_calendar_reminders.ReminderTests.test_invalid_offsets_rejected) ... ok
+test_no_reminders_at_or_after_appointment (test_calendar_reminders.ReminderTests.test_no_reminders_at_or_after_appointment) ... ok
+test_old_outbox_schema_migrates_without_data_loss (test_calendar_reminders.ReminderTests.test_old_outbox_schema_migrates_without_data_loss) ... ok
+test_outage_grace_window_and_skip_stale (test_calendar_reminders.ReminderTests.test_outage_grace_window_and_skip_stale) ... ok
+test_restart_and_repeated_scheduling_no_duplicates (test_calendar_reminders.ReminderTests.test_restart_and_repeated_scheduling_no_duplicates) ... ok
+test_retry_then_delivery_marks_sent (test_calendar_reminders.ReminderTests.test_retry_then_delivery_marks_sent) ... ok
+test_short_notice_booking_does_not_emit_past_deadline (test_calendar_reminders.ReminderTests.test_short_notice_booking_does_not_emit_past_deadline) ... ok
+test_simultaneous_scheduler_checks_enqueue_once (test_calendar_reminders.ReminderTests.test_simultaneous_scheduler_checks_enqueue_once) ... ok
+test_upgraded_existing_booking_gets_future_reminder (test_calendar_reminders.ReminderTests.test_upgraded_existing_booking_gets_future_reminder) ... ok
+test_adjacent_allowed (test_core.BookingTests.test_adjacent_allowed) ... ok
+test_all_menu_callback_data_fit_telegram_limit (test_core.BookingTests.test_all_menu_callback_data_fit_telegram_limit) ... ok
+test_block_cannot_be_removed_by_other_staff (test_core.BookingTests.test_block_cannot_be_removed_by_other_staff) ... ok
+test_block_conflicts_with_existing_booking (test_core.BookingTests.test_block_conflicts_with_existing_booking) ... ok
+test_block_unblock (test_core.BookingTests.test_block_unblock) ... ok
+test_booking_ui_and_duplicate_confirm (test_core.BookingTests.test_booking_ui_and_duplicate_confirm) ... ok
+test_cancel_retains_history_releases_slot (test_core.BookingTests.test_cancel_retains_history_releases_slot) ... ok
+test_cancel_ui_requires_confirmation (test_core.BookingTests.test_cancel_ui_requires_confirmation) ... ok
+test_complete_retains_occupied_interval (test_core.BookingTests.test_complete_retains_occupied_interval) ... ok
+test_concurrent_same_slot_only_one_wins (test_core.BookingTests.test_concurrent_same_slot_only_one_wins) ... ok
+test_config_rejects_overlapping_weekly_shifts (test_core.BookingTests.test_config_rejects_overlapping_weekly_shifts) ... ok
+test_config_rejects_string_telegram_id (test_core.BookingTests.test_config_rejects_string_telegram_id) ... ok
+test_different_staff_independent (test_core.BookingTests.test_different_staff_independent) ... ok
+test_full_day_block_ui_and_confirmation (test_core.BookingTests.test_full_day_block_ui_and_confirmation) ... ok
+test_no_show_before_time_rejected_and_after_time_retained (test_core.BookingTests.test_no_show_before_time_rejected_and_after_time_retained) ... ok
+test_notice_and_horizon (test_core.BookingTests.test_notice_and_horizon) ... ok
+test_notification_failure_is_durable_and_retryable (test_core.BookingTests.test_notification_failure_is_durable_and_retryable) ... ok
+test_notification_recipients_and_audit (test_core.BookingTests.test_notification_recipients_and_audit) ... ok
+test_overlap_rejected (test_core.BookingTests.test_overlap_rejected) ... ok
+test_private_chat_only (test_core.BookingTests.test_private_chat_only) ... ok
+test_session_survives_restart (test_core.BookingTests.test_session_survives_restart) ... ok
+test_staff_only_own_calendar (test_core.BookingTests.test_staff_only_own_calendar) ... ok
+test_unauthorized_change_and_view_rejected (test_core.BookingTests.test_unauthorized_change_and_view_rejected) ... ok
+test_working_hours_duration_and_closed_day (test_core.BookingTests.test_working_hours_duration_and_closed_day) ... ok
+test_actual_revenue_is_not_estimate (test_dashboard.DashboardTests.test_actual_revenue_is_not_estimate) ... ok
+test_amount_and_note_validation (test_dashboard.DashboardTests.test_amount_and_note_validation) ... ok
+test_cancellation_breakdown_separate_no_show (test_dashboard.DashboardTests.test_cancellation_breakdown_separate_no_show) ... ok
+test_cannot_record_uncompleted_payment (test_dashboard.DashboardTests.test_cannot_record_uncompleted_payment) ... ok
+test_capacity_excludes_union_of_blocks (test_dashboard.DashboardTests.test_capacity_excludes_union_of_blocks) ... ok
+test_closed_day_no_percentage (test_dashboard.DashboardTests.test_closed_day_no_percentage) ... ok
+test_daily_totals_match_summary (test_dashboard.DashboardTests.test_daily_totals_match_summary) ... ok
+test_http_auth_csrf_live_html_report_and_payment (test_dashboard.DashboardTests.test_http_auth_csrf_live_html_report_and_payment) ... ok
+test_independent_staff_filter (test_dashboard.DashboardTests.test_independent_staff_filter) ... ok
+test_interval_arithmetic (test_dashboard.DashboardTests.test_interval_arithmetic) ... ok
+test_missing_price_not_fabricated (test_dashboard.DashboardTests.test_missing_price_not_fabricated) ... ok
+test_modified_schedule_reports_outside_minutes (test_dashboard.DashboardTests.test_modified_schedule_reports_outside_minutes) ... ok
+test_non_admin_cannot_set_payment (test_dashboard.DashboardTests.test_non_admin_cannot_set_payment) ... ok
+test_range_validation_and_solar_dates (test_dashboard.DashboardTests.test_range_validation_and_solar_dates) ... ok
+test_reconcile_and_correct_amount_with_audit (test_dashboard.DashboardTests.test_reconcile_and_correct_amount_with_audit) ... ok
+
+----------------------------------------------------------------------
+Ran 59 tests in 4.248s
+
+OK
+dashboard: GET response
+dashboard: GET response
+dashboard: GET response
+dashboard: GET response
+dashboard: POST response
+dashboard: POST response
+dashboard: GET response

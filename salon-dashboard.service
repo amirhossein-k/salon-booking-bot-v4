@@ -1,0 +1,23 @@
+[Unit]
+Description=Private salon management dashboard
+After=network-online.target
+
+[Service]
+Type=simple
+User=salon
+Group=salon
+WorkingDirectory=/opt/salon-bot
+EnvironmentFile=/opt/salon-bot/.env
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/usr/bin/python3 /opt/salon-bot/dashboard.py
+Restart=on-failure
+RestartSec=10
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/opt/salon-bot/data
+
+[Install]
+WantedBy=multi-user.target
