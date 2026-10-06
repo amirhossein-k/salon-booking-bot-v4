@@ -1,7 +1,10 @@
 .env
-config.json
-data/
-backups/
-*.sqlite3
+.env.*
+!.env.example
+.venv/
 __pycache__/
 *.pyc
+*.sqlite*
+data/
+backups/
+.vercel/

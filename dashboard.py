@@ -98,14 +98,7 @@ class Analytics:
         if sid and sid not in s.staff:
             raise ValueError("آرایشگر نامعتبر است.")
         start, end = s.stamp(first, "00:00"), s.stamp(last + timedelta(days=1), "00:00")
-        with s.connect() as c:
-            # Include intersecting appointments for occupancy; period KPIs use start date.
-            all_bookings = [dict(r) for r in c.execute(
-                """SELECT b.*,p.amount_toman,p.note AS payment_note,p.updated AS payment_updated
-                FROM bookings b LEFT JOIN payments p ON p.booking_id=b.id
-                WHERE b.start<? AND b.end>? ORDER BY b.start DESC""", (end, start))]
-            blocks = [dict(r) for r in c.execute(
-                "SELECT * FROM blocks WHERE start<? AND end>?", (end, start))]
+        all_bookings, blocks = self.source_rows(start, end)
         all_bookings = [b for b in all_bookings if not sid or b["staff_id"] == sid]
         bookings = [b for b in all_bookings if start <= b["start"] < end]
         daily = []
@@ -188,6 +181,16 @@ class Analytics:
                         "free_minutes": max(0, total_capacity - total_used),
                         "utilization": round(100 * total_used / total_capacity, 1) if total_capacity else None},
             "staff": staff_rows, "daily": daily, "bookings": recent}
+
+    def source_rows(self, start, end):
+        with self.store.connect() as c:
+            all_bookings = [dict(r) for r in c.execute(
+                """SELECT b.*,p.amount_toman,p.note AS payment_note,p.updated AS payment_updated
+                FROM bookings b LEFT JOIN payments p ON p.booking_id=b.id
+                WHERE b.start<? AND b.end>? ORDER BY b.start DESC""", (end, start))]
+            blocks = [dict(r) for r in c.execute(
+                "SELECT * FROM blocks WHERE start<? AND end>?", (end, start))]
+        return all_bookings, blocks
 
 
 def make_handler(analytics, username, password, actor, html_path):

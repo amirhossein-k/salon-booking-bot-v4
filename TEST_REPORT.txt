@@ -1,8 +1,20 @@
-59 Python tests passed including authenticated /mobile HTTP endpoint.
-JavaScript syntax and Node simulated-DOM smoke tests passed for navigation, filters, load-more, dates, revenue aggregates, sample payment and empty/error states.
-No physical phone/browser screenshot, Docker build, live Telegram delivery or public deployment was performed.
-Standalone HTML has synthetic data; real mode is enabled by dashboard.py.
+Vercel + MongoDB delivery validation
+===================================
+71 local tests passed: 59 legacy domain/SQLite regression tests and 12 simulated MongoDB repository contract tests.
+6 actual FastAPI HTTP tests skipped because runtime dependencies are unavailable in this no-internet execution sandbox.
+3 live MongoDB replica-set integration tests skipped because no test connection was provided.
+Python source compiled; both dashboard JavaScript programs passed syntax checks.
+JSON configuration and declared API routes checked.
+No live MongoDB connection, transaction/write-conflict validation, dependency installation, Vercel deployment, or Telegram API delivery performed.
+Run START-HERE.fa.md and README.fa.md on your own accounts. The MongoDB deployment must support transactions.
+This package does NOT migrate existing SQLite appointments automatically.
 
+test_dashboard_auth_and_mobile (test_api.FastAPIHTTPTests.test_dashboard_auth_and_mobile) ... skipped 'Install requirements-test.txt to run actual FastAPI HTTP tests'
+test_invalid_payload_and_oversize (test_api.FastAPIHTTPTests.test_invalid_payload_and_oversize) ... skipped 'Install requirements-test.txt to run actual FastAPI HTTP tests'
+test_payment_requires_csrf (test_api.FastAPIHTTPTests.test_payment_requires_csrf) ... skipped 'Install requirements-test.txt to run actual FastAPI HTTP tests'
+test_preview_does_not_process_production_webhook (test_api.FastAPIHTTPTests.test_preview_does_not_process_production_webhook) ... skipped 'Install requirements-test.txt to run actual FastAPI HTTP tests'
+test_webhook_and_cron_reject_missing_secrets_before_db (test_api.FastAPIHTTPTests.test_webhook_and_cron_reject_missing_secrets_before_db) ... skipped 'Install requirements-test.txt to run actual FastAPI HTTP tests'
+test_webhook_commit_and_worker (test_api.FastAPIHTTPTests.test_webhook_commit_and_worker) ... skipped 'Install requirements-test.txt to run actual FastAPI HTTP tests'
 test_all_dates_1900_2100_contiguous_and_valid (test_calendar_reminders.CalendarTests.test_all_dates_1900_2100_contiguous_and_valid) ... ok
 test_farsi_labels (test_calendar_reminders.CalendarTests.test_farsi_labels) ... ok
 test_reference_dates_and_leap_esfand (test_calendar_reminders.CalendarTests.test_reference_dates_and_leap_esfand) ... ok
@@ -62,11 +74,23 @@ test_modified_schedule_reports_outside_minutes (test_dashboard.DashboardTests.te
 test_non_admin_cannot_set_payment (test_dashboard.DashboardTests.test_non_admin_cannot_set_payment) ... ok
 test_range_validation_and_solar_dates (test_dashboard.DashboardTests.test_range_validation_and_solar_dates) ... ok
 test_reconcile_and_correct_amount_with_audit (test_dashboard.DashboardTests.test_reconcile_and_correct_amount_with_audit) ... ok
+test_access_control (test_mongo_unit.MongoContractTests.test_access_control) ... ok
+test_blocks_and_existing_booking_conflict (test_mongo_unit.MongoContractTests.test_blocks_and_existing_booking_conflict) ... ok
+test_cancel_retains_history_releases_time_and_notifications (test_mongo_unit.MongoContractTests.test_cancel_retains_history_releases_time_and_notifications) ... ok
+test_mongo_analytics_receipts_and_capacity (test_mongo_unit.MongoContractTests.test_mongo_analytics_receipts_and_capacity) ... ok
+test_outbox_callback_uses_mongo_not_sql (test_mongo_unit.MongoContractTests.test_outbox_callback_uses_mongo_not_sql) ... ok
+test_overlap_rejected_independent_staff_allowed (test_mongo_unit.MongoContractTests.test_overlap_rejected_independent_staff_allowed) ... ok
+test_payment_validation (test_mongo_unit.MongoContractTests.test_payment_validation) ... ok
+test_reminder_key_persists_and_cancel_suppresses_delivery (test_mongo_unit.MongoContractTests.test_reminder_key_persists_and_cancel_suppresses_delivery) ... ok
+test_transaction_error_rolls_back_session_and_queued_reply (test_mongo_unit.MongoContractTests.test_transaction_error_rolls_back_session_and_queued_reply) ... ok
+test_webhook_confirm_booking_replay_no_extra_reservation (test_mongo_unit.MongoContractTests.test_webhook_confirm_booking_replay_no_extra_reservation) ... ok
+test_webhook_update_deduplicated (test_mongo_unit.MongoContractTests.test_webhook_update_deduplicated) ... ok
+test_worker_retries_network_failure (test_mongo_unit.MongoContractTests.test_worker_retries_network_failure) ... ok
 
 ----------------------------------------------------------------------
-Ran 59 tests in 4.248s
+Ran 77 tests in 5.161s
 
-OK
+OK (skipped=6)
 dashboard: GET response
 dashboard: GET response
 dashboard: GET response
@@ -74,3 +98,13 @@ dashboard: GET response
 dashboard: POST response
 dashboard: POST response
 dashboard: GET response
+
+Live integration status:
+test_booking_vs_block_only_one_commits (integration_mongo.LiveMongoTests.test_booking_vs_block_only_one_commits) ... skipped 'Set TEST_MONGODB_URI and TEST_MONGODB_DB for a disposable replica-set database'
+test_concurrent_same_staff_only_one_booking_commits (integration_mongo.LiveMongoTests.test_concurrent_same_staff_only_one_booking_commits) ... skipped 'Set TEST_MONGODB_URI and TEST_MONGODB_DB for a disposable replica-set database'
+test_webhook_retry_one_database_result (integration_mongo.LiveMongoTests.test_webhook_retry_one_database_result) ... skipped 'Set TEST_MONGODB_URI and TEST_MONGODB_DB for a disposable replica-set database'
+
+----------------------------------------------------------------------
+Ran 3 tests in 0.000s
+
+OK (skipped=3)

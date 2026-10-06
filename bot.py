@@ -30,7 +30,7 @@ class Telegram:
         req = urllib.request.Request(self.base + method,
                                      json.dumps(data).encode(), {"Content-Type": "application/json"})
         try:
-            with urllib.request.urlopen(req, timeout=45) as response:
+            with urllib.request.urlopen(req, timeout=10) as response:
                 result = json.load(response)
         except urllib.error.HTTPError as error:
             try:
